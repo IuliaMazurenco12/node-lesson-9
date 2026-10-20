@@ -1,0 +1,59 @@
+import express from "express";
+import bcrypt from "bcrypt";
+
+
+const app = express();
+const port = 3333;
+
+app.use(express.json());
+
+const users = [];
+
+app.get("/", (req, res) => {
+  res.send("Hello node js!");
+});
+
+// Register user Регестрируем пользователя
+app.post("/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+const hashedPassword = await bcrypt.hash(password, 10) //хэшируем данные пароля
+
+users.push({username, password: hashedPassword}); //добавляем пользователя 
+console.log(users);
+
+res.status(201).send("user successufully registered!")
+
+
+  } catch(error){
+res.status(500).send("Registration failled!");
+
+  }
+});
+
+// login
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = users.find((user) => user.username === username);
+    if (!user) {
+      return res.status(400).send("username or password is invalid");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).send("username or password is invalid");
+    }
+    res.send("Successfull access to your profile!");
+  } catch (error) {
+    res.status(500).send("Server error");
+  }
+});
+
+
+
+app.listen(port, () => {
+  console.log(`Server is running at http://127.0.0.1:${port}`);
+});
+
